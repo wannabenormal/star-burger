@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
 
 
 from .models import Product, Order, OrderMenuItem
@@ -62,6 +63,45 @@ def product_list_api(request):
 @api_view(['POST'])
 def register_order(request):
     order_response = request.data
+
+    try:
+        products = order_response['products']
+    except KeyError:
+        return Response(
+            {
+                'status': 'error',
+                'message': 'products: обязательное поле'
+            },
+            status=status.HTTP_406_NOT_ACCEPTABLE
+        )
+
+    if products is None:
+        return Response(
+            {
+                'status': 'error',
+                'message': 'products: Это поле не может быть пустым'
+            },
+            status=status.HTTP_406_NOT_ACCEPTABLE
+        )
+
+    if not isinstance(products, list):
+        return Response(
+            {
+                'status': 'error',
+                'message': 'products: Ожидался list со значениями, но был получен "str"'
+            },
+            status=status.HTTP_406_NOT_ACCEPTABLE
+        )
+
+    if not len(products):
+        return Response(
+            {
+                'status': 'error',
+                'message': 'products: Этот список не может быть пустым'
+            },
+            status=status.HTTP_406_NOT_ACCEPTABLE
+        )
+
     order = Order.objects.create(
         address=order_response['address'],
         name=order_response['firstname'],
@@ -69,7 +109,7 @@ def register_order(request):
         phonenumber=order_response['phonenumber']
     )
 
-    for product in order_response['products']:
+    for product in products:
         OrderMenuItem.objects.create(
             product_id=product['product'],
             order=order,
