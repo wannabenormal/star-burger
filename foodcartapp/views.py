@@ -2,11 +2,10 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
-import phonenumbers
-
+from rest_framework.validators import ValidationError
 
 from .models import Product, Order, OrderMenuItem
+from .serializers import RegisterOrderSerializer
 
 
 def banners_list_api(request):
@@ -63,121 +62,20 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
-    USER_FIELDS = ['address', 'firstname', 'lastname', 'phonenumber']
-
-    order_response = request.data
-
-    missed_user_fields = []
-    null_user_fields = []
-    bad_type_fields = []
-
-    for field_name in USER_FIELDS:
-        try:
-            field_value = order_response[field_name]
-
-            if field_value is None:
-                null_user_fields.append(field_name)
-
-            if not isinstance(field_value, str):
-                bad_type_fields.append(field_name)
-        except KeyError:
-            missed_user_fields.append(field_name)
-
-    if len(missed_user_fields):
-        return Response(
-            {
-                'status': 'error',
-                'message': '{}: Обязательное поле'.format(
-                    ', '.join(missed_user_fields)
-                )
-            },
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
-
-    if len(null_user_fields):
-        return Response(
-            {
-                'status': 'error',
-                'message': '{}: Поле не может быть пустым'.format(
-                    ', '.join(null_user_fields)
-                )
-            },
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
-
-    if len(bad_type_fields):
-        return Response(
-            {
-                'status': 'error',
-                'message': '{}: Поле должно быть str'.format(
-                    ', '.join(bad_type_fields)
-                )
-            },
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
-
-    try:
-        phone = phonenumbers.parse(order_response['phonenumber'], 'RU')
-
-        if not phonenumbers.is_valid_number_for_region(phone, 'RU'):
-            raise Exception()
-    except Exception:
-        return Response(
-            {
-                'status': 'error',
-                'message': 'phonenumber: Неверный формат телефона'
-            },
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
-
-    try:
-        products = order_response['products']
-    except KeyError:
-        return Response(
-            {
-                'status': 'error',
-                'message': 'products: обязательное поле'
-            },
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
-
-    if products is None:
-        return Response(
-            {
-                'status': 'error',
-                'message': 'products: Это поле не может быть пустым'
-            },
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
-
-    if not isinstance(products, list):
-        return Response(
-            {
-                'status': 'error',
-                'message': 'products: Ожидается list.'
-            },
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
-
-    if not len(products):
-        return Response(
-            {
-                'status': 'error',
-                'message': 'products: Этот список не может быть пустым'
-            },
-            status=status.HTTP_406_NOT_ACCEPTABLE
-        )
+    serializer = RegisterOrderSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    validated_data = serializer.validated_data
 
     order = Order.objects.create(
-        address=order_response['address'],
-        name=order_response['firstname'],
-        last_name=order_response['lastname'],
-        phonenumber=order_response['phonenumber']
+        address=validated_data['address'],
+        name=validated_data['name'],
+        last_name=validated_data['last_name'],
+        phonenumber=validated_data['phonenumber']
     )
 
-    for product in products:
+    for product in validated_data['products']:
         try:
-            product_id = product['product']
+            product_id = product['product']['id']
             Product.objects.get(id=product_id)
             OrderMenuItem.objects.create(
                 product_id=product_id,
@@ -185,11 +83,8 @@ def register_order(request):
                 quantity=product['quantity']
             )
         except Product.DoesNotExist:
-            return Response(
-                {
-                    'status': 'error',
-                    'message': f'Недопустимый первичный ключ "{product_id}"'
-                }
+            raise ValidationError(
+                f'Недопустимый первичный ключ "{product_id}"'
             )
 
-    return Response(order_response)
+    return Response({})
