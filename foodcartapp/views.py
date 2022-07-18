@@ -73,7 +73,7 @@ def register_order(request):
     )
 
     order_items = [
-        OrderMenuItem(order=order, **fields)
+        OrderMenuItem(order=order, price=fields['product'].price, **fields)
         for fields in validated_data['products']
     ]
 

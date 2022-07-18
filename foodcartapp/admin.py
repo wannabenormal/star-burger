@@ -117,3 +117,11 @@ class OrderMenuItemInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     search_fiels = ['name', 'last_name', 'address']
     inlines = [OrderMenuItemInline]
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+
+        for instance in instances:
+            instance.price = instance.product.price
+            instance.save()
+        formset.save_m2m()

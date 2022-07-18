@@ -129,7 +129,7 @@ class OrderQuerySet(models.QuerySet):
     def get_orders_summary(self):
         return self.annotate(
             summary=Sum(
-                F('order_items__quantity') * F('order_items__product__price')
+                F('order_items__quantity') * F('order_items__price')
             )
         )
 
@@ -186,6 +186,13 @@ class OrderMenuItem(models.Model):
     quantity = models.IntegerField(
         validators=[MinValueValidator(1)],
         verbose_name='количество'
+    )
+    price = models.DecimalField(
+        'цена',
+        max_digits=8,
+        decimal_places=2,
+        validators=[MinValueValidator(0)],
+        blank=True
     )
 
     class Meta:
