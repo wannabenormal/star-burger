@@ -1,7 +1,8 @@
 from django.contrib import admin
-from django.shortcuts import reverse
+from django.shortcuts import reverse, redirect
 from django.templatetags.static import static
 from django.utils.html import format_html
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from .models import Product
 from .models import ProductCategory
@@ -117,6 +118,15 @@ class OrderMenuItemInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     search_fiels = ['name', 'last_name', 'address']
     inlines = [OrderMenuItemInline]
+
+    def response_change(self, request, obj):
+        res = super().response_change(request, obj)
+
+        if 'next' in request.GET:
+            if url_has_allowed_host_and_scheme(request.GET['next'], None):
+                return redirect(request.GET['next'])
+        else:
+            return res
 
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=False)
