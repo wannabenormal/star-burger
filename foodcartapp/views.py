@@ -2,10 +2,9 @@ from django.http import JsonResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework.validators import ValidationError
 
 from .models import Product, Order, OrderMenuItem
-from .serializers import RegisterOrderSerializer
+from .serializers import OrderSerializer
 
 
 def banners_list_api(request):
@@ -62,7 +61,7 @@ def product_list_api(request):
 
 @api_view(['POST'])
 def register_order(request):
-    serializer = RegisterOrderSerializer(data=request.data)
+    serializer = OrderSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     validated_data = serializer.validated_data
 
@@ -73,18 +72,13 @@ def register_order(request):
         phonenumber=validated_data['phonenumber']
     )
 
-    for product in validated_data['products']:
-        try:
-            product_id = product['product']['id']
-            Product.objects.get(id=product_id)
-            OrderMenuItem.objects.create(
-                product_id=product_id,
-                order=order,
-                quantity=product['quantity']
-            )
-        except Product.DoesNotExist:
-            raise ValidationError(
-                f'Недопустимый первичный ключ "{product_id}"'
-            )
+    order_items = [
+        OrderMenuItem(order=order, **fields)
+        for fields in validated_data['products']
+    ]
 
-    return Response({})
+    OrderMenuItem.objects.bulk_create(order_items)
+
+    if serializer.is_valid:
+        return Response(OrderSerializer(order).data)
+    return JsonResponse(serializer.errors, status=400)

@@ -1,33 +1,29 @@
 from rest_framework import serializers
-from rest_framework.validators import ValidationError
-import phonenumbers
+from rest_framework.serializers import ValidationError
 
 from .models import Order, OrderMenuItem
 
 
 class OrderMenuItemSerializer(serializers.ModelSerializer):
-    product = serializers.IntegerField(source='product.id')
-
     class Meta:
         model = OrderMenuItem
         fields = ['product', 'quantity']
 
 
-class RegisterOrderSerializer(serializers.ModelSerializer):
+class OrderSerializer(serializers.ModelSerializer):
     firstname = serializers.CharField(source='name')
     lastname = serializers.CharField(source='last_name')
-    products = OrderMenuItemSerializer(many=True, allow_empty=False)
+    products = OrderMenuItemSerializer(
+        many=True,
+        allow_empty=False,
+        write_only=True
+    )
 
-    def validate_phonenumber(self, value):
-        try:
-            phone = phonenumbers.parse(value, 'RU')
+    def validate_products(self, value):
+        if isinstance(value, list) and len(value) > 0:
+            return value
 
-            if not phonenumbers.is_valid_number_for_region(phone, 'RU'):
-                raise ValidationError('Неверный формат телефона')
-        except phonenumbers.NumberParseException:
-            raise ValidationError('Неверный формат телефона')
-
-        return value
+        raise ValidationError('Отсутствуют ключи продуктов или передан не список')
 
     class Meta:
         model = Order

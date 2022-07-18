@@ -1,5 +1,5 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from phonenumber_field.modelfields import PhoneNumberField
 
 
@@ -140,7 +140,14 @@ class Order(models.Model):
         max_length=50, blank=True,
         db_index=True, verbose_name='Фамилия'
     )
-    phonenumber = PhoneNumberField(db_index=True, verbose_name='Телефон')
+
+    phonenumber_regex = RegexValidator(regex=r'^(\+7|7|8)?[\s\-]?\(?[489][0-9]{2}\)?[\s\-]?[0-9]{3}[\s\-]?[0-9]{2}[\s\-]?[0-9]{2}$')
+    phonenumber = PhoneNumberField(
+        db_index=True,
+        validators=[phonenumber_regex],
+        verbose_name='Телефон',
+        region='RU'
+    )
 
     class Meta:
         verbose_name = 'заказ'
