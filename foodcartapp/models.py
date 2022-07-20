@@ -176,6 +176,10 @@ class Order(models.Model):
         verbose_name='Телефон',
         region='RU'
     )
+    comment = models.TextField(
+        blank=True,
+        verbose_name='Комментарий к заказу'
+    )
 
     objects = OrderQuerySet.as_manager()
 
