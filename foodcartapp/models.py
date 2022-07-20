@@ -135,6 +135,24 @@ class OrderQuerySet(models.QuerySet):
 
 
 class Order(models.Model):
+    CREATED = 'created'
+    ASSEMBLING = 'assembling'
+    DELIVERING = 'delivering'
+    DONE = 'done'
+    STATUS_CHOICES = [
+        (CREATED, 'Необработанный'),
+        (ASSEMBLING, 'Сборка'),
+        (DELIVERING, 'Доставка'),
+        (DONE, 'Доставлен')
+    ]
+
+    status = models.CharField(
+        max_length=50,
+        choices=STATUS_CHOICES,
+        default=CREATED,
+        db_index=True,
+        verbose_name='Статус'
+    )
     address = models.CharField(
         max_length=200,
         db_index=True,

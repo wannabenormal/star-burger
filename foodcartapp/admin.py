@@ -117,6 +117,7 @@ class OrderMenuItemInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     search_fiels = ['name', 'last_name', 'address']
+    list_filter = ['status']
     inlines = [OrderMenuItemInline]
 
     def response_change(self, request, obj):
