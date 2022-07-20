@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Sum, F
 from django.core.validators import MinValueValidator, RegexValidator
 from phonenumber_field.modelfields import PhoneNumberField
+from django.utils import timezone
 
 
 class Restaurant(models.Model):
@@ -145,6 +146,26 @@ class Order(models.Model):
         (DELIVERING, 'Доставка'),
         (DONE, 'Доставлен')
     ]
+
+    created_at = models.DateTimeField(
+        db_index=True,
+        default=timezone.now,
+        blank=True,
+        null=True,
+        verbose_name='Зарегистрирован в'
+    )
+    called_at = models.DateTimeField(
+        db_index=True,
+        blank=True,
+        null=True,
+        verbose_name='Уточнен в'
+    )
+    delivered_at = models.DateTimeField(
+        db_index=True,
+        blank=True,
+        null=True,
+        verbose_name='Доставлен в'
+    )
 
     status = models.CharField(
         max_length=50,
