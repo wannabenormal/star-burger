@@ -147,6 +147,13 @@ class Order(models.Model):
         (DONE, 'Доставлен')
     ]
 
+    ONLINE = 'online'
+    CASH = 'cash'
+    PAYMENT_METHOD_CHOICES = [
+        (ONLINE, 'Онлайн-оплата'),
+        (CASH, 'Оплата при получении')
+    ]
+
     created_at = models.DateTimeField(
         db_index=True,
         default=timezone.now,
@@ -173,6 +180,13 @@ class Order(models.Model):
         default=CREATED,
         db_index=True,
         verbose_name='Статус'
+    )
+    payment_method = models.CharField(
+        max_length=50,
+        choices=PAYMENT_METHOD_CHOICES,
+        db_index=True,
+        blank=True,
+        verbose_name='Способ оплаты'
     )
     address = models.CharField(
         max_length=200,
