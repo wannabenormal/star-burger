@@ -1,5 +1,7 @@
+from collections import defaultdict
+
 from django.db import models
-from django.db.models import Sum, F
+from django.db.models import Sum, F, Prefetch
 from django.core.validators import MinValueValidator, RegexValidator
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils import timezone
@@ -134,6 +136,40 @@ class OrderQuerySet(models.QuerySet):
             )
         )
 
+    def with_restaurants(self):
+        orders = self.prefetch_related(
+            Prefetch(
+                'order_items',
+                queryset=OrderMenuItem.objects.select_related('product')
+            )
+        )
+
+        menu_items = RestaurantMenuItem.objects.select_related(
+            'restaurant',
+            'product'
+        ).filter(
+            availability=True,
+        )
+
+        restaurants_by_items = defaultdict(list)
+
+        for menu_item in menu_items:
+            restaurants_by_items[menu_item.product.id].append(
+                menu_item.restaurant
+            )
+
+        for order in orders:
+            order_restaurants_by_items = [
+                restaurants_by_items[order_item.product.id]
+                for order_item in order.order_items.all()
+            ]
+            order.restaurants = list(
+                set.intersection(*[
+                    set(list) for list in order_restaurants_by_items
+                ])
+            )
+        return orders
+
 
 class Order(models.Model):
     CREATED = 'created'
@@ -214,6 +250,14 @@ class Order(models.Model):
     comment = models.TextField(
         blank=True,
         verbose_name='Комментарий к заказу'
+    )
+    restaurant = models.ForeignKey(
+        Restaurant,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='orders',
+        verbose_name='Ресторан'
     )
 
     objects = OrderQuerySet.as_manager()
