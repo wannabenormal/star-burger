@@ -1,0 +1,12 @@
+from django.db import models
+from django.utils import timezone
+
+
+class Location(models.Model):
+    address = models.CharField(max_length=60, unique=True, verbose_name='Адрес')
+    lat = models.FloatField(verbose_name='Ширина')
+    lon = models.FloatField(verbose_name='Долгота')
+    date = models.DateField(
+        default=timezone.now,
+        verbose_name='Дата запроса к Геокодеру'
+    )

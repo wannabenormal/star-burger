@@ -7,7 +7,7 @@ from django.core.validators import MinValueValidator, RegexValidator
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils import timezone
 
-from .geo_tools import fetch_coordinates, calc_distance
+from locations.geo_tools import get_or_create_locations, calc_distance
 
 
 class Restaurant(models.Model):
@@ -154,6 +154,16 @@ class OrderQuerySet(models.QuerySet):
             availability=True,
         )
 
+        order_addresses = [order.address for order in orders]
+        restaurant_addresses = [
+            menu_item.restaurant.address
+            for menu_item in menu_items
+        ]
+
+        locations = get_or_create_locations(
+            [*order_addresses, *restaurant_addresses]
+        )
+
         restaurants_by_items = defaultdict(list)
 
         for menu_item in menu_items:
@@ -162,7 +172,7 @@ class OrderQuerySet(models.QuerySet):
             )
 
         for order in orders:
-            order_location = fetch_coordinates(order.address)
+            order_location = locations.get(order.address)
 
             order_restaurants_by_items = [
                 copy.deepcopy(restaurants_by_items[order_item.product.id])
@@ -175,7 +185,7 @@ class OrderQuerySet(models.QuerySet):
             )
 
             for restaurant in order.restaurants:
-                restaurant_location = fetch_coordinates(restaurant.address)
+                restaurant_location = locations.get(restaurant.address)
                 restaurant.distance = calc_distance(
                     order_location,
                     restaurant_location
