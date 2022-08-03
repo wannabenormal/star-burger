@@ -173,6 +173,7 @@ class OrderQuerySet(models.QuerySet):
 
         for order in orders:
             order_location = locations.get(order.address)
+            order.location = order_location
 
             order_restaurants_by_items = [
                 copy.deepcopy(restaurants_by_items[order_item.product.id])
