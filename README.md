@@ -54,6 +54,7 @@ python -m venv venv
 pip install -r requirements.txt
 ```
 
+Получите ключ [Yandex API](https://yandex.ru/dev/site/api/concepts/access.html).
 Определите переменную окружения `SECRET_KEY` и `YANDEX_API_KEY`. Создать файл `.env` в каталоге `star_burger/` и положите туда такой код:
 ```sh
 SECRET_KEY=django-insecure-0if40nf4nf93n4
