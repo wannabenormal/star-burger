@@ -27,29 +27,29 @@ def calc_distance(point_one, point_two):
     return round(distance.distance(point_one, point_two).km, 2)
 
 
-def get_or_create_locations(locations):
+def get_or_create_locations(addresses):
     locations_with_coords = {
         location.address: (location.lat, location.lon)
-        for location in Location.objects.filter(address__in=locations)
+        for location in Location.objects.filter(address__in=addresses)
     }
 
     new_locations = []
 
-    for location in locations:
-        if location in locations_with_coords.keys():
+    for address in addresses:
+        if address in locations_with_coords.keys():
             continue
 
-        coordinates = fetch_coordinates(location)
+        coordinates = fetch_coordinates(address)
 
         if coordinates:
             lat, lon = coordinates
             new_location = Location(
-                address=location,
+                address=address,
                 lat=lat,
                 lon=lon
             )
 
-            locations_with_coords[location] = (lat, lon)
+            locations_with_coords[address] = (lat, lon)
             new_locations.append(new_location)
 
     if len(new_locations) > 0:
