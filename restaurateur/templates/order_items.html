@@ -38,7 +38,7 @@
         <td>
           {% if item.restaurant %}
             Готовит: {{ item.restaurant }}
-          {% elif not item.location %}
+          {% elif not item.location.0 or not item.location.1 %}
             Ошибка обработки адреса
           {% else %}
             <details>

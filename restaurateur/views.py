@@ -100,7 +100,7 @@ def view_restaurants(request):
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
     orders = Order.objects.get_orders_summary().select_related(
-        'restaurant'
+        'cooking_restaurant'
     ).exclude(status='done').annotate(
         relevance=Count(Case(When(status='created', then=1)))
     ).order_by('-relevance').with_available_restaurants()

@@ -20,6 +20,7 @@ def fetch_coordinates(address):
 
     most_relevant = found_places[0]
     lon, lat = most_relevant['GeoObject']['Point']['pos'].split(' ')
+
     return lat, lon
 
 
@@ -50,7 +51,13 @@ def get_or_create_locations(addresses):
             )
 
             locations_with_coords[address] = (lat, lon)
-            new_locations.append(new_location)
+        else:
+            new_location = Location(
+                address=address
+            )
+            locations_with_coords[address] = None
+
+        new_locations.append(new_location)
 
     if len(new_locations) > 0:
         Location.objects.bulk_create(new_locations)

@@ -135,14 +135,14 @@ class OrderQuerySet(models.QuerySet):
     def get_orders_summary(self):
         return self.annotate(
             summary=Sum(
-                F('order_items__quantity') * F('order_items__price')
+                F('items__quantity') * F('items__price')
             )
         )
 
     def with_available_restaurants(self):
         orders = self.prefetch_related(
             Prefetch(
-                'order_items',
+                'items',
                 queryset=OrderMenuItem.objects.select_related('product')
             )
         )
@@ -177,7 +177,7 @@ class OrderQuerySet(models.QuerySet):
 
             order_restaurants_by_items = [
                 copy.deepcopy(restaurants_by_items[order_item.product.id])
-                for order_item in order.order_items.all()
+                for order_item in order.items.all()
             ]
             order.restaurants = list(
                 set.intersection(*[
