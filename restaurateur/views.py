@@ -103,7 +103,7 @@ def view_orders(request):
         'restaurant'
     ).exclude(status='done').annotate(
         relevance=Count(Case(When(status='created', then=1)))
-    ).order_by('-relevance').with_restaurants()
+    ).order_by('-relevance').with_available_restaurants()
     return render(request, template_name='order_items.html', context={
         'order_items': orders,
     })

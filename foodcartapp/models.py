@@ -139,7 +139,7 @@ class OrderQuerySet(models.QuerySet):
             )
         )
 
-    def with_restaurants(self):
+    def with_available_restaurants(self):
         orders = self.prefetch_related(
             Prefetch(
                 'order_items',
@@ -280,13 +280,13 @@ class Order(models.Model):
         blank=True,
         verbose_name='Комментарий к заказу'
     )
-    restaurant = models.ForeignKey(
+    cooking_restaurant = models.ForeignKey(
         Restaurant,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='orders',
-        verbose_name='Ресторан'
+        verbose_name='Ответственный ресторан'
     )
 
     objects = OrderQuerySet.as_manager()
