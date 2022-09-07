@@ -4,6 +4,7 @@ import rollbar
 import dj_database_url
 
 from environs import Env
+from git import Repo
 
 
 env = Env()
@@ -130,9 +131,15 @@ STATICFILES_DIRS = [
 
 YANDEX_API_KEY = env.str('YANDEX_API_KEY')
 
-ROLLBAR = {
-    'access_token': env.str('ROLLBAR_TOKEN'),
-    'environment': 'development' if DEBUG else 'production',
-    'root': BASE_DIR,
-}
-rollbar.init(**ROLLBAR)
+ROLLBAR_TOKEN = env.str('ROLLBAR_TOKEN', None)
+
+if ROLLBAR_TOKEN:
+    local_repo = Repo(path=BASE_DIR)
+
+    ROLLBAR = {
+        'access_token': env.str('ROLLBAR_TOKEN'),
+        'environment': env.str('ROLLBAR_ENVIRONMENT', 'development'),
+        'branch': local_repo.active_branch.name,
+        'root': BASE_DIR,
+    }
+    rollbar.init(**ROLLBAR)
