@@ -152,6 +152,13 @@ Parcel будет следить за файлами в каталоге `bundle
 - `ROLLBAR_TOKEN` — [токен сервиса логирования Rollbar (опционально)](https://rollbar.com).
 - `ROLLBAR_ENVIRONMENT` — `development` или `production` (опционально).
 
+## Автоматиечский деплой на сервер
+Для быстрого деплоя на сервере представлен `Shell-скрипт`. Для его запуска перейдите в домашнюю директорию `root`-пользователя и запустите его:
+```sh
+cd ~
+./deploy_starburger.sh
+```
+
 ## Цели проекта
 
 Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org). За основу был взят код проекта [FoodCart](https://github.com/Saibharath79/FoodCart).
