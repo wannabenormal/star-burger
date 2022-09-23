@@ -1,7 +1,6 @@
 import os
 
 import rollbar
-import dj_database_url
 
 from environs import Env
 from git import Repo
@@ -86,12 +85,15 @@ WSGI_APPLICATION = 'star_burger.wsgi.application'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
-POSTGRES_URL = env.str('POSTGRES_URL')
-
 DATABASES = {
-    'default': dj_database_url.config(
-        default=POSTGRES_URL
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB'),
+        'USER': os.environ.get('POSTGRES_USER'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
+        'HOST': 'db',
+        'PORT': 5432,
+    }
 }
 
 AUTH_PASSWORD_VALIDATORS = [
